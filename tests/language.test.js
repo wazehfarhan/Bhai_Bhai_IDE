@@ -203,3 +203,35 @@ test('validates builtin argument counts', async () => {
     /Expected 1 argument, received 0/,
   );
 });
+
+test('supports prefix and postfix increment and decrement', async () => {
+  const source = `
+    dhoro i = 1
+    dekhaw(i++)
+    dekhaw(++i)
+    hobe (; i > 0; i--) {}
+    dekhaw(i)
+  `;
+  const output = [];
+  const runtime = createRuntime({
+    onOutput: (value) => output.push(value),
+    isStopRequested: () => false,
+  });
+
+  await new Interpreter({ runtime }).execute(parseProgram(tokenize(source)));
+  assert.deepEqual(output, ['1\n', '3\n', '0\n']);
+});
+
+test('preserves object keys that overlap JavaScript internals', async () => {
+  const output = [];
+  const runtime = createRuntime({
+    onOutput: (value) => output.push(value),
+    isStopRequested: () => false,
+  });
+
+  await new Interpreter({ runtime }).execute(
+    parseProgram(tokenize('dhoro item = {"__proto__": 1}\ndekhaw(length(item))')),
+  );
+
+  assert.deepEqual(output, ['1\n']);
+});

@@ -54,6 +54,10 @@ export function UnaryExpression(operator, argument) {
   return { type: "UnaryExpression", operator, argument };
 }
 
+export function UpdateExpression(argument, operator, prefix = false) {
+  return { type: "UpdateExpression", argument, operator, prefix };
+}
+
 export function Identifier(name) {
   return { type: "Identifier", name };
 }

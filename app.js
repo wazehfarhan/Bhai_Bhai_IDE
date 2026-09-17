@@ -190,24 +190,50 @@ codeInput.addEventListener("keydown", (e) => {
   }
 });
 
-// Simple auto-indent on Enter
+// Auto-indent on Enter. A new block gains one indentation level, so typing
+// inside Bhai/ Nahole/ hobe/ jotokhun blocks does not start at column zero.
 codeInput.addEventListener("keydown", (e) => {
   // Autocomplete owns Enter while its suggestion list is open. Respect its
   // cancelled event so this handler cannot add a newline after acceptance.
   if (e.key !== "Enter" || e.defaultPrevented || e.shiftKey) return;
-  const before = codeInput.value.slice(0, codeInput.selectionStart);
-  const lastLine = before.split("\n").pop() ?? "";
-  const indent = lastLine.match(/^\s+/)?.[0] ?? "";
+  e.preventDefault();
 
-  setTimeout(() => {
-    const pos = codeInput.selectionStart;
-    const currentLine = codeInput.value.slice(0, pos).split("\n").pop() ?? "";
-    if (currentLine.trim().length === 0) {
-      codeInput.value = codeInput.value.replace(/(\n)(\s*)$/, `$1${indent}`);
-    }
-    syncGutter();
-    renderSyntax();
-  }, 0);
+  const start = codeInput.selectionStart;
+  const end = codeInput.selectionEnd;
+  const value = codeInput.value;
+  const before = value.slice(0, start);
+  const currentLine = before.split("\n").pop() ?? "";
+  const baseIndent = currentLine.match(/^\s*/)?.[0] ?? "";
+  const indent = currentLine.trimEnd().endsWith("{")
+    ? `${baseIndent}  `
+    : baseIndent;
+  const insert = `\n${indent}`;
+
+  codeInput.value = value.slice(0, start) + insert + value.slice(end);
+  codeInput.selectionStart = codeInput.selectionEnd = start + insert.length;
+  syncGutter();
+  renderSyntax();
+});
+
+// Align a closing brace with its opening block when it is typed on an
+// otherwise blank indented line.
+codeInput.addEventListener("keydown", (e) => {
+  if (e.key !== "}" || e.ctrlKey || e.metaKey || e.altKey) return;
+
+  const start = codeInput.selectionStart;
+  const end = codeInput.selectionEnd;
+  const value = codeInput.value;
+  const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+  const beforeCaret = value.slice(lineStart, start);
+  if (!/^\s*$/.test(beforeCaret)) return;
+
+  const indent = beforeCaret.slice(0, Math.max(0, beforeCaret.length - 2));
+  e.preventDefault();
+  codeInput.value =
+    value.slice(0, lineStart) + indent + "}" + value.slice(end);
+  codeInput.selectionStart = codeInput.selectionEnd = lineStart + indent.length + 1;
+  syncGutter();
+  renderSyntax();
 });
 
 installAutocomplete({

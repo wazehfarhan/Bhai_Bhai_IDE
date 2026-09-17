@@ -189,6 +189,22 @@ export class Interpreter {
           kind: "RuntimeError",
         });
       }
+      case "UpdateExpression": {
+        const name = node.argument.name;
+        const previous = env.get(name);
+        if (previous === undefined) {
+          throw new BhaiBhaiError(`Undefined variable ${name}`, {
+            kind: "UndefinedVariable",
+          });
+        }
+        const next = Number(previous) + (node.operator === "++" ? 1 : -1);
+        if (!env.assign(name, next)) {
+          throw new BhaiBhaiError(`Undefined variable ${name}`, {
+            kind: "UndefinedVariable",
+          });
+        }
+        return node.prefix ? next : previous;
+      }
       case "CallExpression": {
         const callee = this.evalExpr(node.callee, env);
         if (!callee)
@@ -203,7 +219,14 @@ export class Interpreter {
       case "ObjectLiteral": {
         const object = {};
         for (const pair of node.pairs) {
-          object[pair.key] = this.evalExpr(pair.value, env);
+          // Defining an own property avoids JavaScript's special `__proto__`
+          // setter and preserves every valid language-level object key.
+          Object.defineProperty(object, pair.key, {
+            value: this.evalExpr(pair.value, env),
+            enumerable: true,
+            configurable: true,
+            writable: true,
+          });
         }
         return object;
       }

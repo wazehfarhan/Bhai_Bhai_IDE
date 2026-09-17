@@ -14,6 +14,7 @@ import {
   ContinueStatement,
   BinaryExpression,
   UnaryExpression,
+  UpdateExpression,
   Identifier,
   Literal,
   ExpressionStatement,
@@ -401,6 +402,18 @@ class Parser {
   }
 
   parseUnary() {
+    if (this.at("Operator", "++") || this.at("Operator", "--")) {
+      const op = this.peek().value;
+      this.i++;
+      const argument = this.parseUnary();
+      if (argument.type !== "Identifier") {
+        throw new BhaiBhaiError("Invalid update target", {
+          kind: "SyntaxError",
+          location: tokenToLoc(this.peek()),
+        });
+      }
+      return UpdateExpression(argument, op, true);
+    }
     if (this.at("Operator", "!") || this.at("Operator", "-")) {
       const op = this.peek().value;
       this.i++;
@@ -422,6 +435,17 @@ class Parser {
       }
       this.consume("Punctuation", ")", "Expected ) after call args");
       expr = CallExpression(expr, args);
+    }
+    if (this.at("Operator", "++") || this.at("Operator", "--")) {
+      const op = this.peek().value;
+      this.i++;
+      if (expr.type !== "Identifier") {
+        throw new BhaiBhaiError("Invalid update target", {
+          kind: "SyntaxError",
+          location: tokenToLoc(this.peek()),
+        });
+      }
+      expr = UpdateExpression(expr, op, false);
     }
     return expr;
   }
