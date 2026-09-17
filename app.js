@@ -22,6 +22,7 @@ const panes = {
   errors: document.getElementById("errors"),
   tokens: document.getElementById("tokens"),
   ast: document.getElementById("ast"),
+  docs: document.getElementById("docs"),
 };
 
 document.querySelectorAll(".tab").forEach((tab) => {
@@ -50,6 +51,7 @@ function clearOutput() {
 }
 
 function renderDocumentation() {
+  if (!panes.docs) return;
   const sections = [
     {
       title: "1. Variables",
@@ -101,8 +103,8 @@ dekhaw(add(2, 3))</pre>
       body: `
         <p>Common built-ins include <code>dekhaw</code>, <code>naw</code>, <code>length</code>, <code>push</code>, <code>pop</code>, and math helpers.</p>
         <pre>dekhaw("Hello from Bhai Bhai")
-dhoro y = naw()</n
-dekhaw(y)</pre>
+      dhoro y = naw()
+      dekhaw(y)</pre>
         <p class="output">Output: Hello from Bhai Bhai and 0</p>
       `,
     },
@@ -154,11 +156,16 @@ function syncScroll() {
 
 const highlighter = new SyntaxHighlighter();
 function renderSyntax() {
-  const tokens = tokenizeForIDE(codeInput.value);
-  syntaxLayer.innerHTML = highlighter.renderTokens(tokens, {
-    source: codeInput.value,
-    showUnknownAsPlain: true,
-  });
+  const source = codeInput.value;
+  try {
+    const tokens = tokenizeForIDE(source);
+    syntaxLayer.innerHTML = highlighter.renderTokens(tokens, {
+      source,
+      showUnknownAsPlain: true,
+    });
+  } catch (error) {
+    syntaxLayer.textContent = source;
+  }
 }
 
 codeInput.addEventListener("input", () => {
@@ -185,7 +192,9 @@ codeInput.addEventListener("keydown", (e) => {
 
 // Simple auto-indent on Enter
 codeInput.addEventListener("keydown", (e) => {
-  if (e.key !== "Enter") return;
+  // Autocomplete owns Enter while its suggestion list is open. Respect its
+  // cancelled event so this handler cannot add a newline after acceptance.
+  if (e.key !== "Enter" || e.defaultPrevented || e.shiftKey) return;
   const before = codeInput.value.slice(0, codeInput.selectionStart);
   const lastLine = before.split("\n").pop() ?? "";
   const indent = lastLine.match(/^\s+/)?.[0] ?? "";
@@ -213,7 +222,9 @@ let stopRequested = false;
 function formatError(err) {
   if (!err || typeof err !== "object") return String(err);
   const kind = err.kind ? `(${err.kind})` : "";
-  const loc = err.location ? ` ${err.location}` : "";
+  const loc = err.location
+    ? ` line ${err.location.line}, column ${err.location.col}`
+    : "";
   const msg = err.message ?? String(err);
   return `${kind}${loc}\n${msg}`.trim();
 }
@@ -277,6 +288,11 @@ async function runProgram() {
 }
 
 runBtn.addEventListener("click", runProgram);
+codeInput.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" || !e.shiftKey || e.defaultPrevented) return;
+  e.preventDefault();
+  runProgram();
+});
 stopBtn.addEventListener("click", () => {
   stopRequested = true;
   statusLeft.textContent = "Stopping...";

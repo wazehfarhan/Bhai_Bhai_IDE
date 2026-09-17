@@ -1,0 +1,11 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "Live Preview",
+			"workspacePath": "/Users/w2zullah/All Code/new language/Bhai_Bhai_IDE",
+			"problemMatcher": [],
+			"label": "Live Preview: Run Server"
+		}
+	]
+}

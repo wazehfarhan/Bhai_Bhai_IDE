@@ -175,6 +175,21 @@ body {
   align-items: stretch;
   min-height: 0;
 }
+.bracket-hint {
+  position: absolute;
+  left: 70px;
+  top: 12px;
+  z-index: 2;
+  display: none;
+  padding: 4px 8px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #fbbf24;
+  font-family: var(--mono);
+  font-size: 12px;
+  pointer-events: none;
+}
 .gutter {
   width: 56px;
   min-width: 56px;

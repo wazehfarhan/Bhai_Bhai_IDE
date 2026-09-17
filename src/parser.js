@@ -338,7 +338,12 @@ class Parser {
 
   parseEquality() {
     let left = this.parseComparison();
-    while (this.at("Operator", "==") || this.at("Operator", "!=")) {
+    while (
+      this.at("Operator", "==") ||
+      this.at("Operator", "!=") ||
+      this.at("Operator", "===") ||
+      this.at("Operator", "!==")
+    ) {
       const op = this.peek().value;
       this.i++;
       const right = this.parseComparison();
@@ -498,6 +503,7 @@ class Parser {
     }
 
     if (this.at("Punctuation", "[")) return this.parseArray();
+    if (this.at("Punctuation", "{")) return this.parseObject();
 
     throw new BhaiBhaiError("Unexpected token in expression", {
       kind: "SyntaxError",

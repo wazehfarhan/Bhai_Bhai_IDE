@@ -65,13 +65,32 @@ export class SyntaxHighlighter {
     if (tail) html += escapeHtml(tail);
     return html;
   }
+
+  renderSource(source, { showUnknownAsPlain = true } = {}) {
+    return escapeHtml(source).replace(/\n/g, "\n");
+  }
+}
+
+export function safeRenderTokens(source, tokens = [], options = {}) {
+  const { highlighter = new SyntaxHighlighter(), showUnknownAsPlain = true } = options;
+
+  if (!source) return "";
+
+  try {
+    if (tokens.length === 0) {
+      return highlighter.renderSource(source, { showUnknownAsPlain });
+    }
+    return highlighter.renderTokens(tokens, { source, showUnknownAsPlain });
+  } catch {
+    return highlighter.renderSource(source, { showUnknownAsPlain });
+  }
 }
 
 function escapeHtml(s) {
   return String(s)
     .replaceAll("&", "&amp;")
-    .replaceAll("<", "<")
-    .replaceAll(">", ">")
-    .replaceAll('"', '"')
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 }

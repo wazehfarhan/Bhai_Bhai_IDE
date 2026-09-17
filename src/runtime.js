@@ -1,10 +1,17 @@
 import { Environment } from "./environment.js";
 import { BhaiBhaiError } from "./errors.js";
 
-export function createRuntime({ onOutput, isStopRequested }) {
+export function createRuntime({ onOutput, isStopRequested, maxSteps = 100000 }) {
   const global = new Environment(null);
+  let steps = 0;
 
   function checkStop() {
+    steps++;
+    if (steps > maxSteps) {
+      throw new BhaiBhaiError("Execution step limit exceeded", {
+        kind: "RuntimeError",
+      });
+    }
     if (isStopRequested?.()) {
       throw new BhaiBhaiError("Execution stopped by user", {
         kind: "RuntimeError",

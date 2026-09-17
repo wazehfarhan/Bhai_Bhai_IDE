@@ -15,6 +15,8 @@ export class Interpreter {
   constructor({ runtime, onError }) {
     this.runtime = runtime;
     this.onError = onError || (() => {});
+    this.loopDepth = 0;
+    this.functionDepth = 0;
   }
 
   async execute(ast) {
@@ -68,7 +70,14 @@ export class Interpreter {
       }
       case "WhileStatement": {
         while (truthy(this.evalExpr(node.condition, env))) {
-          const r = this.execStatement(node.body, env);
+          this.runtime.checkStop?.();
+          this.loopDepth++;
+          let r;
+          try {
+            r = this.execStatement(node.body, env);
+          } finally {
+            this.loopDepth--;
+          }
           if (r instanceof ReturnSignal) return r;
           if (r && r.kind === "break") break;
           if (r && r.kind === "continue") continue;
@@ -84,7 +93,14 @@ export class Interpreter {
           else this.execStatement(node.init, forEnv);
         }
         while (truthy(this.evalExpr(node.condition, forEnv))) {
-          const r = this.execStatement(node.body, forEnv);
+          this.runtime.checkStop?.();
+          this.loopDepth++;
+          let r;
+          try {
+            r = this.execStatement(node.body, forEnv);
+          } finally {
+            this.loopDepth--;
+          }
           if (r instanceof ReturnSignal) return r;
           if (r && r.kind === "break") break;
           if (r && r.kind === "continue") {
@@ -107,12 +123,27 @@ export class Interpreter {
         return fn;
       }
       case "ReturnStatement": {
+        if (this.functionDepth === 0) {
+          throw new BhaiBhaiError("ferot can only be used inside a function", {
+            kind: "RuntimeError",
+          });
+        }
         const val = node.argument ? this.evalExpr(node.argument, env) : null;
         return new ReturnSignal(val);
       }
       case "BreakStatement":
+        if (this.loopDepth === 0) {
+          throw new BhaiBhaiError("tham can only be used inside a loop", {
+            kind: "RuntimeError",
+          });
+        }
         return { kind: "break" };
       case "ContinueStatement":
+        if (this.loopDepth === 0) {
+          throw new BhaiBhaiError("chol can only be used inside a loop", {
+            kind: "RuntimeError",
+          });
+        }
         return { kind: "continue" };
       default:
         throw new BhaiBhaiError(`Unknown statement: ${node.type}`, {
@@ -145,6 +176,8 @@ export class Interpreter {
       }
       case "BinaryExpression": {
         const left = this.evalExpr(node.left, env);
+        if (node.operator === "&&" && !truthy(left)) return false;
+        if (node.operator === "||" && truthy(left)) return true;
         const right = this.evalExpr(node.right, env);
         return this.applyBinary(node.operator, left, right, node);
       }
@@ -167,6 +200,13 @@ export class Interpreter {
       }
       case "ArrayLiteral":
         return node.elements.map((e) => this.evalExpr(e, env));
+      case "ObjectLiteral": {
+        const object = {};
+        for (const pair of node.pairs) {
+          object[pair.key] = this.evalExpr(pair.value, env);
+        }
+        return object;
+      }
       default:
         throw new BhaiBhaiError(`Unknown expression: ${node.type}`, {
           kind: "RuntimeError",
@@ -176,6 +216,12 @@ export class Interpreter {
 
   callFunction(fn, args) {
     if (fn.type === "builtin") {
+      if (args.length !== fn.arity) {
+        throw new BhaiBhaiError(
+          `Expected ${fn.arity} argument${fn.arity === 1 ? "" : "s"}, received ${args.length}`,
+          { kind: "RuntimeError" },
+        );
+      }
       return fn.call(args);
     }
     if (fn.type === "function") {
@@ -183,7 +229,16 @@ export class Interpreter {
       for (let i = 0; i < fn.params.length; i++) {
         callEnv.define(fn.params[i], args[i] ?? null);
       }
-      const r = this.execStatement(fn.body, callEnv);
+      const parentLoopDepth = this.loopDepth;
+      this.functionDepth++;
+      this.loopDepth = 0;
+      let r;
+      try {
+        r = this.execStatement(fn.body, callEnv);
+      } finally {
+        this.loopDepth = parentLoopDepth;
+        this.functionDepth--;
+      }
       if (r instanceof ReturnSignal) return r.value;
       return null;
     }
@@ -216,6 +271,10 @@ export class Interpreter {
       case "==":
         return a === b;
       case "!=":
+        return a !== b;
+      case "===":
+        return a === b;
+      case "!==":
         return a !== b;
       case ">":
         return Number(a) > Number(b);

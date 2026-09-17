@@ -5,6 +5,24 @@ import { tokenize } from '../src/tokenizer.js';
 import { parseProgram } from '../src/parser.js';
 import { createRuntime } from '../src/runtime.js';
 import { Interpreter } from '../src/interpreter.js';
+import { getAutocompleteItems } from '../editor/autocomplete.js';
+import { SyntaxHighlighter, safeRenderTokens } from '../editor/syntax.js';
+
+test('invalid partial code stays visible instead of crashing the editor highlighter', () => {
+  const source = 'dekhaw("hello' + '\\';
+  const highlighter = new SyntaxHighlighter();
+
+  assert.doesNotThrow(() => {
+    const rendered = safeRenderTokens(source, [], { highlighter, showUnknownAsPlain: true });
+    assert.equal(rendered, 'dekhaw(&quot;hello\\');
+  });
+});
+
+test('autocomplete avoids suggesting the exact prefix already typed', () => {
+  assert.deepEqual(getAutocompleteItems('dho'), ['dhoro']);
+  assert.deepEqual(getAutocompleteItems('dhoro'), []);
+  assert.equal(getAutocompleteItems('dho').includes('dho'), false);
+});
 
 test('builtin function names are treated as identifiers and execute correctly', async () => {
   const source = `
@@ -78,4 +96,110 @@ test('supports comments in blocks and a variable declaration in a for loop', asy
   await interpreter.execute(parseProgram(tokenize(source, { includeComments: true })));
 
   assert.deepEqual(output, ['0\n', '1\n', '2\n']);
+});
+
+test('supports object literals and strict equality', async () => {
+  const source = `
+    dhoro item = {name: "Bhai", count: 2}
+    Bhai (1 === 1) {
+      dekhaw(length(item))
+    }
+  `;
+  const output = [];
+  const runtime = createRuntime({
+    onOutput: (value) => output.push(value),
+    isStopRequested: () => false,
+  });
+
+  await new Interpreter({ runtime }).execute(parseProgram(tokenize(source)));
+  assert.deepEqual(output, ['2\n']);
+});
+
+test('short-circuits logical operators', async () => {
+  const source = `
+    sotti || dekhaw("should not print")
+    mitha && dekhaw("should not print")
+  `;
+  const output = [];
+  const runtime = createRuntime({
+    onOutput: (value) => output.push(value),
+    isStopRequested: () => false,
+  });
+
+  await new Interpreter({ runtime }).execute(parseProgram(tokenize(source)));
+  assert.deepEqual(output, []);
+});
+
+test('stops runaway execution at the configured step limit', async () => {
+  const source = `jotokhun (sotti) { dekhaw("loop") }`;
+  const runtime = createRuntime({
+    onOutput: () => {},
+    isStopRequested: () => false,
+    maxSteps: 10,
+  });
+
+  await assert.rejects(
+    () => new Interpreter({ runtime }).execute(parseProgram(tokenize(source))),
+    /Execution step limit exceeded/,
+  );
+});
+
+test('limits empty infinite loops too', async () => {
+  const runtime = createRuntime({
+    onOutput: () => {},
+    isStopRequested: () => false,
+    maxSteps: 5,
+  });
+
+  await assert.rejects(
+    () =>
+      new Interpreter({ runtime }).execute(
+        parseProgram(tokenize('jotokhun (sotti) {}')),
+      ),
+    /Execution step limit exceeded/,
+  );
+});
+
+test('rejects return, break, and continue outside their valid context', async () => {
+  for (const source of ['ferot 1', 'tham', 'chol']) {
+    const runtime = createRuntime({
+      onOutput: () => {},
+      isStopRequested: () => false,
+    });
+
+    await assert.rejects(
+      () => new Interpreter({ runtime }).execute(parseProgram(tokenize(source))),
+      /can only be used inside/,
+    );
+  }
+});
+
+test('rejects break from a function called by a loop', async () => {
+  const source = `
+    kaj invalid() { tham }
+    hobe (dhoro i = 0; i < 1; i = i + 1) {
+      invalid()
+    }
+  `;
+  const runtime = createRuntime({
+    onOutput: () => {},
+    isStopRequested: () => false,
+  });
+
+  await assert.rejects(
+    () => new Interpreter({ runtime }).execute(parseProgram(tokenize(source))),
+    /tham can only be used inside a loop/,
+  );
+});
+
+test('validates builtin argument counts', async () => {
+  const runtime = createRuntime({
+    onOutput: () => {},
+    isStopRequested: () => false,
+  });
+
+  await assert.rejects(
+    () => new Interpreter({ runtime }).execute(parseProgram(tokenize('dekhaw()'))),
+    /Expected 1 argument, received 0/,
+  );
 });
