@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bhai Bhai - Browser IDE</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="app" class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="logo">bb</div>
+          <div class="brand-text">
+            <div class="title">Bhai Bhai</div>
+            <div class="subtitle">Programming language inside your browser</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <a class="btn" href="./guide.html">Syntax guide</a>
+          <button id="runBtn" class="btn primary">Run</button>
+          <button id="stopBtn" class="btn">Stop</button>
+          <button id="clearBtn" class="btn">Clear Output</button>
+          <button id="downloadBtn" class="btn">Download code</button>
+          <label class="btn file-btn">
+            Upload file
+            <input
+              id="uploadInput"
+              type="file"
+              accept="text/plain,.bb,.txt"
+              hidden
+            />
+          </label>
+        </div>
+      </header>
+
+      <main class="main">
+        <section class="panel editor-panel" aria-label="editor">
+          <div class="panel-header">
+            <span class="panel-title">Code</span>
+            <span id="statusLeft" class="status">Ready</span>
+          </div>
+
+          <div class="editor-wrap">
+            <div class="gutter" id="gutter"></div>
+            <textarea
+              id="codeInput"
+              class="editor"
+              spellcheck="false"
+              autocomplete="off"
+            ></textarea>
+            <pre id="syntaxLayer" class="syntax-layer" aria-hidden="true"></pre>
+            <div id="bracketHint" class="bracket-hint" aria-hidden="true"></div>
+          </div>
+        </section>
+
+        <section class="panel output-panel" aria-label="output">
+          <div class="panel-header">
+            <span class="panel-title">Output</span>
+            <span id="statusRight" class="status"></span>
+          </div>
+
+          <div class="tabs">
+            <button class="tab active" data-tab="runtime">Runtime</button>
+            <button class="tab" data-tab="errors">Errors</button>
+            <button class="tab" data-tab="tokens">Tokens</button>
+            <button class="tab" data-tab="ast">AST</button>
+          </div>
+
+          <div class="tab-content">
+            <div id="runtime" class="content-pane active"></div>
+            <div id="errors" class="content-pane"></div>
+            <div id="tokens" class="content-pane mono"></div>
+            <div id="ast" class="content-pane mono"></div>
+          </div>
+
+          <div class="bottom-metrics">
+            <div>Time: <span id="timeMetric">-</span></div>
+            <div>Memory: <span id="memMetric">-</span></div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="help">
+          <span class="kbd">Shift</span>+<span class="kbd">Enter</span> to Run •
+          <span class="kbd">Tab</span> auto-indent •
+          <span class="kbd">Ctrl</span>+<span class="kbd">Space</span>
+          autocomplete
+        </div>
+        <div class="foot-right">Bhai Bhai Suru kor • Bhai Bhai ses kor</div>
+      </footer>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

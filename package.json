@@ -1,0 +1,10 @@
+{
+  "name": "bhai-bhai",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "example": "node src/cli.js examples/basic.bb",
+    "run": "node src/cli.js"
+  }
+}

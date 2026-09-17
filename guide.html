@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Bhai Bhai language syntax guide and programming exercises." />
+    <title>Bhai Bhai — Syntax Guide</title>
+    <link rel="stylesheet" href="./guide.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./index.html" aria-label="Open Bhai Bhai IDE"><span>bb</span> Bhai Bhai</a>
+      <nav aria-label="Primary navigation">
+        <a href="#learn">Syntax</a>
+        <a href="#problems">Problems</a>
+        <a class="ide-link" href="./index.html">Open IDE</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <p class="eyebrow">Learn by running small programs</p>
+        <h1 id="page-title">Bhai Bhai language guide</h1>
+        <p>Every lesson is a small code cell: read it, check its result, then open it in the IDE and change it. Keywords are Bengali-inspired; English aliases are also supported.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#learn">Start with syntax</a>
+          <a class="button" href="#problems">Solve problems</a>
+        </div>
+      </section>
+
+      <section class="quick-start" aria-labelledby="quick-start-title">
+        <div>
+          <p class="eyebrow">Three steps</p>
+          <h2 id="quick-start-title">How to use the IDE</h2>
+        </div>
+        <ol>
+          <li>Choose any example below and select <strong>Open in IDE</strong>.</li>
+          <li>Press <kbd>Shift</kbd> + <kbd>Enter</kbd> or the <strong>Run</strong> button.</li>
+          <li>Read output in the Runtime tab; use Errors for line and column details.</li>
+        </ol>
+      </section>
+
+      <section id="learn" class="content-section" aria-labelledby="learn-title">
+        <p class="eyebrow">Complete syntax reference</p>
+        <h2 id="learn-title">Learn one cell at a time</h2>
+        <div id="syntax-cells" class="cell-grid"></div>
+      </section>
+
+      <section class="keyword-section" aria-labelledby="keywords-title">
+        <p class="eyebrow">Keyword map</p>
+        <h2 id="keywords-title">Bhai Bhai and English aliases</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Use</th><th>Bhai Bhai</th><th>English alias</th></tr></thead>
+            <tbody>
+              <tr><td>Declare a variable</td><td><code>dhoro</code></td><td>—</td></tr>
+              <tr><td>Condition</td><td><code>Bhai</code></td><td><code>if</code></td></tr>
+              <tr><td>Alternative branch</td><td><code>Nahole</code></td><td><code>else</code></td></tr>
+              <tr><td>For loop</td><td><code>hobe</code></td><td><code>for</code></td></tr>
+              <tr><td>While loop</td><td><code>jotokhun</code></td><td><code>while</code></td></tr>
+              <tr><td>Function</td><td><code>kaj</code></td><td><code>function</code></td></tr>
+              <tr><td>Return</td><td><code>ferot</code></td><td><code>return</code></td></tr>
+              <tr><td>Break / continue</td><td><code>tham</code> / <code>chol</code></td><td><code>break</code> / <code>continue</code></td></tr>
+              <tr><td>Values</td><td><code>sotti</code>, <code>mitha</code>, <code>khali</code></td><td><code>true</code>, <code>false</code>, <code>null</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Use one spelling consistently in a program. Semicolons are optional after normal statements, but are required between the three parts of a <code>hobe</code>/<code>for</code> loop.</p>
+      </section>
+
+      <section id="problems" class="content-section" aria-labelledby="problems-title">
+        <p class="eyebrow">Practice</p>
+        <h2 id="problems-title">Programming problems, solved cell by cell</h2>
+        <p class="section-intro">Try to predict each result before opening the solution in the IDE.</p>
+        <div id="problem-cells" class="problem-grid"></div>
+      </section>
+
+      <section class="rules" aria-labelledby="rules-title">
+        <p class="eyebrow">Keep these close</p>
+        <h2 id="rules-title">Useful rules and current limits</h2>
+        <div class="rules-grid">
+          <article><h3>Names</h3><p>Variable and function names start with a letter or <code>_</code>, then may include numbers and <code>_</code>.</p></article>
+          <article><h3>Output</h3><p>Use <code>dekhaw(value)</code>. Each call writes one line in Runtime.</p></article>
+          <article><h3>Operators</h3><p><code>+ - * / % ^</code>, comparisons <code>== != &gt; &lt; &gt;= &lt;=</code>, and logical <code>&amp;&amp; || !</code> are available.</p></article>
+          <article><h3>Current limits</h3><p>Object properties and array indexing are not available yet. Use arrays with <code>length</code>, <code>push</code>, and <code>pop</code>.</p></article>
+        </div>
+      </section>
+    </main>
+
+    <footer>Made for experimenting — change a number, run it, and see what happens.</footer>
+    <script type="module" src="./guide.js"></script>
+  </body>
+</html>
