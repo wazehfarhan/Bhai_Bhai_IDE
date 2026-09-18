@@ -1,7 +1,35 @@
+import fs from "node:fs";
 import { Environment } from "./environment.js";
 import { BhaiBhaiError } from "./errors.js";
 
-export function createRuntime({ onOutput, isStopRequested, maxSteps = 100000 }) {
+function defaultReadInput(promptText = "") {
+  if (typeof window !== "undefined" && typeof window.prompt === "function") {
+    return window.prompt(promptText || "Enter a value:");
+  }
+
+  if (typeof process !== "undefined" && process.stdin && process.stdin.isTTY === false) {
+    const incoming = fs.readFileSync(0, "utf8");
+    const line = incoming.split(/\r?\n/).find((value) => value.trim() !== "");
+    return line ?? "";
+  }
+
+  return "";
+}
+
+function normalizeInputValue(raw) {
+  if (raw === null || raw === undefined) return "";
+  const text = String(raw).trim();
+  if (text === "") return "";
+
+  const asNumber = Number(text);
+  if (Number.isFinite(asNumber) && !/[A-Za-z]/.test(text)) {
+    return asNumber;
+  }
+
+  return text;
+}
+
+export function createRuntime({ onOutput, isStopRequested, maxSteps = 100000, readInput = defaultReadInput }) {
   const global = new Environment(null);
   let steps = 0;
 
@@ -35,6 +63,15 @@ export function createRuntime({ onOutput, isStopRequested, maxSteps = 100000 }) 
       arity: 0,
       call: () => {
         return 0;
+      },
+    },
+    input: {
+      type: "builtin",
+      minArgs: 0,
+      maxArgs: 1,
+      call: ([promptText = ""]) => {
+        const answer = readInput?.(typeof promptText === "string" ? promptText : "");
+        return normalizeInputValue(answer);
       },
     },
     length: {

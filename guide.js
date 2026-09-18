@@ -62,6 +62,28 @@ const syntaxCells = [
     result: "Pass",
     fact: "Fun fact: comments are for people reading the code; the program ignores them.",
   },
+  {
+    title: "9. Read user input",
+    explanation: "Use input() to capture a value from the user. Numbers become numbers; other text stays a string.",
+    code: `dhoro neo = input("Enter a number: ")
+dhoro name = input("Enter a name: ")
+dekhaw(neo + 1)
+dekhaw(name)`,
+    result: "43\nneo",
+    fact: "Fun fact: a variable like neo can store either a numeric value or a string depending on what the user types.",
+  },
+  {
+    title: "10. Comments and operators",
+    explanation: "Use // for a one-line note. Combine conditions with &&, ||, and !.",
+    code: `// Is this score a pass?
+dhoro score = 75
+dhoro attended = sotti
+Bhai (score >= 60 && attended) {
+  dekhaw("Pass")
+}`,
+    result: "Pass",
+    fact: "Fun fact: comments are for people reading the code; the program ignores them.",
+  },
 ];
 
 const problems = [

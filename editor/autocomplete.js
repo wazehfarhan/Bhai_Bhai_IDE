@@ -17,6 +17,7 @@ const KEYWORDS = [
 const BUILTINS = [
   "dekhaw",
   "naw",
+  "input",
   "length",
   "push",
   "pop",

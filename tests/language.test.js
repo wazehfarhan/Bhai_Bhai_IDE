@@ -24,6 +24,39 @@ test('autocomplete avoids suggesting the exact prefix already typed', () => {
   assert.equal(getAutocompleteItems('dho').includes('dho'), false);
 });
 
+test('allows non-keyword input without forcing an autocomplete suggestion', () => {
+  assert.deepEqual(getAutocompleteItems('neo'), []);
+  assert.deepEqual(
+    tokenize('neo').map((token) => [token.type, token.value]),
+    [
+      ['Identifier', 'neo'],
+      ['EOF', ''],
+    ],
+  );
+});
+
+test('supports input() for both numbers and strings', async () => {
+  const source = `
+    dhoro age = input("Age: ")
+    dhoro name = input("Name: ")
+    dekhaw(age + 1)
+    dekhaw(name)
+  `;
+  const runtime = createRuntime({
+    onOutput: () => {},
+    isStopRequested: () => false,
+    readInput: (prompt) => {
+      if (prompt === "Age: ") return "42";
+      if (prompt === "Name: ") return "neo";
+      return "";
+    },
+  });
+
+  await new Interpreter({ runtime }).execute(parseProgram(tokenize(source)));
+  assert.equal(runtime.global.get('age'), 42);
+  assert.equal(runtime.global.get('name'), 'neo');
+});
+
 test('builtin function names are treated as identifiers and execute correctly', async () => {
   const source = `
     dhoro x = 10

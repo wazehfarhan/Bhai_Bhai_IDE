@@ -239,11 +239,15 @@ export class Interpreter {
 
   callFunction(fn, args) {
     if (fn.type === "builtin") {
-      if (args.length !== fn.arity) {
-        throw new BhaiBhaiError(
-          `Expected ${fn.arity} argument${fn.arity === 1 ? "" : "s"}, received ${args.length}`,
-          { kind: "RuntimeError" },
-        );
+      const minArgs = fn.minArgs ?? fn.arity ?? 0;
+      const maxArgs = fn.maxArgs ?? fn.arity ?? minArgs;
+      if (args.length < minArgs || args.length > maxArgs) {
+        const expected = minArgs === maxArgs
+          ? `Expected ${minArgs} argument${minArgs === 1 ? "" : "s"}`
+          : `Expected between ${minArgs} and ${maxArgs} arguments`;
+        throw new BhaiBhaiError(`${expected}, received ${args.length}`, {
+          kind: "RuntimeError",
+        });
       }
       return fn.call(args);
     }

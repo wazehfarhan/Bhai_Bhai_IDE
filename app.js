@@ -278,6 +278,10 @@ async function runProgram() {
         panes.runtime.textContent += String(s);
       },
       isStopRequested: () => stopRequested,
+      readInput: (promptText) => {
+        const label = typeof promptText === "string" && promptText.trim() ? promptText : "Enter a value:";
+        return window.prompt(label);
+      },
     });
 
     statusLeft.textContent = "Running...";
