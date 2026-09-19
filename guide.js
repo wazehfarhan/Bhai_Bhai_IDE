@@ -1,3 +1,8 @@
+import { tokenize } from "./src/tokenizer.js";
+import { parseProgram } from "./src/parser.js";
+import { Interpreter } from "./src/interpreter.js";
+import { createRuntime } from "./src/runtime.js";
+
 const syntaxCells = [
   {
     title: "1. Variables and output",
@@ -56,14 +61,14 @@ const syntaxCells = [
     fact: "Fun fact: push changes the original array, so its length grows.",
   },
   {
-    title: "9. Comments and operators",
+    title: "9. Comments and logic",
     explanation: "Use // for a one-line note. Combine conditions with &&, ||, and !.",
     code: `// Is this score a pass?\ndhoro score = 75\ndhoro attended = sotti\nBhai (score >= 60 && attended) {\n  dekhaw("Pass")\n}`,
     result: "Pass",
     fact: "Fun fact: comments are for people reading the code; the program ignores them.",
   },
   {
-    title: "9. Read user input",
+    title: "10. Read user input",
     explanation: "Use neo() to capture a value from the user. input() remains available as an alias. Numbers become numbers; other text stays a string.",
     code: `dhoro number = neo("Enter a number: ")
 dhoro name = input("Enter a name: ")
@@ -71,18 +76,51 @@ dekhaw(number + 1)
 dekhaw(name)`,
     result: "43\nneo",
     fact: "Fun fact: a variable like neo can store either a numeric value or a string depending on what the user types.",
+    inputs: { "Enter a number: ": "42", "Enter a name: ": "neo" },
   },
   {
-    title: "10. Comments and operators",
-    explanation: "Use // for a one-line note. Combine conditions with &&, ||, and !.",
-    code: `// Is this score a pass?
-dhoro score = 75
-dhoro attended = sotti
-Bhai (score >= 60 && attended) {
-  dekhaw("Pass")
+    title: "11. Nested loops",
+    explanation: "Put one loop inside another to build a small grid of values.",
+    code: `hobe (dhoro row = 1; row <= 2; row = row + 1) {
+  hobe (dhoro col = 1; col <= 3; col = col + 1) {
+    dekhaw(row * col)
+  }
 }`,
-    result: "Pass",
-    fact: "Fun fact: comments are for people reading the code; the program ignores them.",
+    result: "1\n2\n3\n2\n4\n6",
+    fact: "Fun fact: the inner loop completes once for every turn of the outer loop.",
+  },
+  {
+    title: "12. Reusable greetings",
+    explanation: "Functions can combine text and return a new message.",
+    code: `kaj greet(name) {
+  ferot "Hello, " + name
+}
+
+dekhaw(greet("Bhai"))`,
+    result: "Hello, Bhai",
+    fact: "Fun fact: returning a value lets you use a function call anywhere an expression is accepted.",
+  },
+  {
+    title: "13. Array workflow",
+    explanation: "Use push, pop, and length together to manage a simple collection.",
+    code: `dhoro queue = []
+push(queue, "first")
+push(queue, "second")
+dekhaw(length(queue))
+dekhaw(pop(queue))
+dekhaw(length(queue))`,
+    result: "2\nsecond\n1",
+    fact: "Fun fact: pop removes the last item and returns it, so it can be printed immediately.",
+  },
+  {
+    title: "14. Math helpers",
+    explanation: "Built-in math helpers make common calculations readable.",
+    code: `dekhaw(abs(-9))
+dekhaw(sqrt(81))
+dekhaw(min(4, 7))
+dekhaw(max(4, 7))`,
+    result: "9\n9\n4\n7",
+    fact: "Fun fact: every built-in is callable like a normal Bhai Bhai function.",
   },
 ];
 
@@ -160,6 +198,36 @@ function createCell(item, type) {
   pre.append(code);
   const actions = document.createElement("div");
   actions.className = "cell-actions";
+  const run = document.createElement("button");
+  run.className = "button small run-example";
+  run.textContent = "Run example";
+  const liveOutput = document.createElement("pre");
+  liveOutput.className = "live-output";
+  liveOutput.textContent = "Ready to run";
+  run.addEventListener("click", async () => {
+    run.disabled = true;
+    run.textContent = "Running...";
+    liveOutput.className = "live-output running";
+    liveOutput.textContent = "Running example...";
+    const output = [];
+    try {
+      const runtime = createRuntime({
+        onOutput: (value) => output.push(value),
+        isStopRequested: () => false,
+        readInput: (prompt) => item.inputs?.[prompt] ?? "",
+      });
+      await new Interpreter({ runtime }).execute(parseProgram(tokenize(item.code)));
+      liveOutput.className = "live-output success";
+      liveOutput.textContent = output.join("").trimEnd() || "(no output)";
+      run.textContent = "Run again";
+    } catch (error) {
+      liveOutput.className = "live-output error";
+      liveOutput.textContent = error?.message || String(error);
+      run.textContent = "Try again";
+    } finally {
+      run.disabled = false;
+    }
+  });
   const copy = document.createElement("button");
   copy.className = "button small";
   copy.textContent = "Copy code";
@@ -179,7 +247,7 @@ function createCell(item, type) {
   open.addEventListener("click", () => {
     sessionStorage.setItem("bhai-bhai:guide-source", item.code);
   });
-  actions.append(copy, open);
+  actions.append(run, copy, open);
   const output = document.createElement("div");
   output.className = "result";
   const label = document.createElement("span");
@@ -190,7 +258,7 @@ function createCell(item, type) {
   const fact = document.createElement("p");
   fact.className = "fact";
   fact.textContent = item.fact;
-  card.append(heading, text, pre, actions, output, fact);
+  card.append(heading, text, pre, actions, liveOutput, output, fact);
   return card;
 }
 
