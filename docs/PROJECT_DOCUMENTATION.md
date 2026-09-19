@@ -87,6 +87,8 @@ The project follows this flow:
 The runtime currently registers these functions in `src/runtime.js`:
 
 - `dekhaw(value)` -> outputs text to the console/pane
+- `neo(prompt?)` -> reads user input; numbers become numbers and other text stays a string
+- `input(prompt?)` -> alias for `neo(prompt?)`
 - `naw()` -> returns 0
 - `length(value)` -> returns array/string/object length
 - `push(array, item)` -> append to array

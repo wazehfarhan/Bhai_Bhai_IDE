@@ -18,6 +18,7 @@ const BUILTINS = [
   "dekhaw",
   "naw",
   "input",
+  "neo",
   "length",
   "push",
   "pop",
@@ -36,15 +37,35 @@ export function getAutocompleteItems(prefix) {
   return [...new Set(pool.filter((value) => value.startsWith(prefix) && value !== prefix))].slice(0, 8);
 }
 
-function getPrefixAtCaret(editor) {
-  const upToCaret = editor.value.slice(0, editor.selectionStart);
+export function getPrefixAtCaret(editor) {
+  if (!editor || typeof editor.value !== "string") return "";
+  const selectionStart = Math.max(0, Number(editor.selectionStart ?? editor.value.length));
+  const upToCaret = editor.value.slice(0, selectionStart);
   const match = upToCaret.match(
     /([A-Za-z_\u0980-\u09FF][A-Za-z0-9_\u0980-\u09FF]*)$/,
   );
   return match ? match[1] : "";
 }
 
+export function applyAutocompleteReplacement(editor, prefix, replacement) {
+  if (!editor || typeof editor.value !== "string") return editor;
+
+  const selectionStart = Math.max(0, Number(editor.selectionStart ?? editor.value.length));
+  const selectionEnd = Math.max(selectionStart, Number(editor.selectionEnd ?? selectionStart));
+  const prefixLength = typeof prefix === "string" ? prefix.length : 0;
+  const start = Math.max(0, selectionStart - prefixLength);
+  const end = selectionEnd;
+
+  editor.value = editor.value.slice(0, start) + replacement + editor.value.slice(end);
+  const cursor = start + (replacement ?? "").length;
+  editor.selectionStart = cursor;
+  editor.selectionEnd = cursor;
+  return editor;
+}
+
 export function installAutocomplete({ editor, getSource, onRender }) {
+  if (!editor || !editor.parentElement) return;
+
   // Simple autocomplete popup.
   const box = document.createElement("div");
   box.style.position = "absolute";
@@ -146,11 +167,13 @@ export function installAutocomplete({ editor, getSource, onRender }) {
   }
 
   function apply(prefix, replacement) {
-    const idx = editor.selectionStart;
-    const start = idx - prefix.length;
-    editor.value =
-      editor.value.slice(0, start) + replacement + editor.value.slice(idx);
-    editor.selectionStart = editor.selectionEnd = start + replacement.length;
+    if (!replacement) {
+      hide();
+      clearAcceptedHint();
+      return;
+    }
+
+    applyAutocompleteReplacement(editor, prefix, replacement);
     hide();
     clearAcceptedHint();
     onRender?.();
@@ -192,7 +215,10 @@ export function installAutocomplete({ editor, getSource, onRender }) {
   editor.addEventListener("beforeinput", (e) => {
     if (
       (e.inputType === "insertLineBreak" || e.inputType === "insertParagraph") &&
-      box.style.display !== "none"
+      box.style.display !== "none" &&
+      items.length > 0 &&
+      active >= 0 &&
+      active < items.length
     ) {
       e.preventDefault();
       apply(getPrefixAtCaret(editor), items[active]);
@@ -205,31 +231,39 @@ export function installAutocomplete({ editor, getSource, onRender }) {
       return;
     }
 
-    if (e.key === "ArrowDown" && box.style.display !== "none") {
-      e.preventDefault();
-      active = Math.min(items.length - 1, active + 1);
-      renderList(getPrefixAtCaret(editor));
-      return;
+    const popupOpen = box.style.display !== "none";
+    if (popupOpen) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        active = Math.min(items.length - 1, active + 1);
+        renderList(getPrefixAtCaret(editor));
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        active = Math.max(0, active - 1);
+        renderList(getPrefixAtCaret(editor));
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (items.length > 0 && active >= 0 && active < items.length) {
+          apply(getPrefixAtCaret(editor), items[active]);
+        }
+        return;
+      }
+      if (e.key === "Tab") {
+        e.preventDefault();
+        if (items.length > 0 && active >= 0 && active < items.length) {
+          apply(getPrefixAtCaret(editor), items[active]);
+        }
+        return;
+      }
     }
-    if (e.key === "ArrowUp" && box.style.display !== "none") {
-      e.preventDefault();
-      active = Math.max(0, active - 1);
-      renderList(getPrefixAtCaret(editor));
-      return;
-    }
-    if (e.key === "Enter" && box.style.display !== "none") {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      apply(getPrefixAtCaret(editor), items[active]);
-      return;
-    }
+
     if ((e.ctrlKey || e.metaKey) && e.key === " ") {
       e.preventDefault();
       updateFromCaret();
-    }
-    if (e.key === "Tab" && box.style.display !== "none") {
-      e.preventDefault();
-      apply(getPrefixAtCaret(editor), items[active]);
     }
   }, true);
 

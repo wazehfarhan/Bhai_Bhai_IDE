@@ -64,10 +64,10 @@ const syntaxCells = [
   },
   {
     title: "9. Read user input",
-    explanation: "Use input() to capture a value from the user. Numbers become numbers; other text stays a string.",
-    code: `dhoro neo = input("Enter a number: ")
+    explanation: "Use neo() to capture a value from the user. input() remains available as an alias. Numbers become numbers; other text stays a string.",
+    code: `dhoro number = neo("Enter a number: ")
 dhoro name = input("Enter a name: ")
-dekhaw(neo + 1)
+dekhaw(number + 1)
 dekhaw(name)`,
     result: "43\nneo",
     fact: "Fun fact: a variable like neo can store either a numeric value or a string depending on what the user types.",

@@ -1,19 +1,31 @@
-import fs from "node:fs";
 import { Environment } from "./environment.js";
 import { BhaiBhaiError } from "./errors.js";
+
+function readStdinFallback() {
+  if (typeof process === "undefined" || !process.versions?.node) {
+    return null;
+  }
+
+  try {
+    const nodeFs = typeof require === "function" ? require("node:fs") : null;
+    if (!nodeFs || typeof nodeFs.readFileSync !== "function") {
+      return null;
+    }
+
+    const incoming = nodeFs.readFileSync(0, "utf8");
+    const line = incoming.split(/\r?\n/).find((value) => value.trim() !== "");
+    return line ?? "";
+  } catch {
+    return null;
+  }
+}
 
 function defaultReadInput(promptText = "") {
   if (typeof window !== "undefined" && typeof window.prompt === "function") {
     return window.prompt(promptText || "Enter a value:");
   }
 
-  if (typeof process !== "undefined" && process.stdin && process.stdin.isTTY === false) {
-    const incoming = fs.readFileSync(0, "utf8");
-    const line = incoming.split(/\r?\n/).find((value) => value.trim() !== "");
-    return line ?? "";
-  }
-
-  return "";
+  return readStdinFallback();
 }
 
 function normalizeInputValue(raw) {
@@ -32,6 +44,15 @@ function normalizeInputValue(raw) {
 export function createRuntime({ onOutput, isStopRequested, maxSteps = 100000, readInput = defaultReadInput }) {
   const global = new Environment(null);
   let steps = 0;
+  const inputBuiltin = {
+    type: "builtin",
+    minArgs: 0,
+    maxArgs: 1,
+    call: ([promptText = ""]) => {
+      const answer = readInput?.(typeof promptText === "string" ? promptText : "");
+      return normalizeInputValue(answer);
+    },
+  };
 
   function checkStop() {
     steps++;
@@ -65,15 +86,8 @@ export function createRuntime({ onOutput, isStopRequested, maxSteps = 100000, re
         return 0;
       },
     },
-    input: {
-      type: "builtin",
-      minArgs: 0,
-      maxArgs: 1,
-      call: ([promptText = ""]) => {
-        const answer = readInput?.(typeof promptText === "string" ? promptText : "");
-        return normalizeInputValue(answer);
-      },
-    },
+    input: inputBuiltin,
+    neo: inputBuiltin,
     length: {
       type: "builtin",
       arity: 1,

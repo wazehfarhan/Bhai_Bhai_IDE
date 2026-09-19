@@ -4,6 +4,7 @@ import { Interpreter } from "./src/interpreter.js";
 import { createRuntime } from "./src/runtime.js";
 import { SyntaxHighlighter } from "./editor/syntax.js";
 import { installAutocomplete } from "./editor/autocomplete.js";
+import { getAutoIndentInsert, applyTabIndent } from "./editor/typing.js";
 
 const codeInput = document.getElementById("codeInput");
 const gutter = document.getElementById("gutter");
@@ -101,11 +102,11 @@ dekhaw(add(2, 3))</pre>
     {
       title: "5. Built-in functions",
       body: `
-        <p>Common built-ins include <code>dekhaw</code>, <code>naw</code>, <code>length</code>, <code>push</code>, <code>pop</code>, and math helpers.</p>
+        <p>Common built-ins include <code>dekhaw</code>, <code>neo</code>, <code>input</code>, <code>naw</code>, <code>length</code>, <code>push</code>, <code>pop</code>, and math helpers.</p>
         <pre>dekhaw("Hello from Bhai Bhai")
-      dhoro y = naw()
+      dhoro y = neo("Enter a value: ")
       dekhaw(y)</pre>
-        <p class="output">Output: Hello from Bhai Bhai and 0</p>
+        <p class="output">Output: Hello from Bhai Bhai and the entered value</p>
       `,
     },
     {
@@ -178,12 +179,15 @@ codeInput.addEventListener("scroll", syncScroll);
 codeInput.addEventListener("keydown", (e) => {
   if (e.key === "Tab") {
     e.preventDefault();
-    const start = codeInput.selectionStart;
-    const end = codeInput.selectionEnd;
-    const value = codeInput.value;
-    const insert = "  ";
-    codeInput.value = value.slice(0, start) + insert + value.slice(end);
-    codeInput.selectionStart = codeInput.selectionEnd = start + insert.length;
+    const { value, selectionStart, selectionEnd } = applyTabIndent(
+      codeInput.value,
+      codeInput.selectionStart,
+      codeInput.selectionEnd,
+      "  ",
+    );
+    codeInput.value = value;
+    codeInput.selectionStart = selectionStart;
+    codeInput.selectionEnd = selectionEnd;
     syncGutter();
     renderSyntax();
     return;
@@ -201,13 +205,7 @@ codeInput.addEventListener("keydown", (e) => {
   const start = codeInput.selectionStart;
   const end = codeInput.selectionEnd;
   const value = codeInput.value;
-  const before = value.slice(0, start);
-  const currentLine = before.split("\n").pop() ?? "";
-  const baseIndent = currentLine.match(/^\s*/)?.[0] ?? "";
-  const indent = currentLine.trimEnd().endsWith("{")
-    ? `${baseIndent}  `
-    : baseIndent;
-  const insert = `\n${indent}`;
+  const insert = getAutoIndentInsert(value, start);
 
   codeInput.value = value.slice(0, start) + insert + value.slice(end);
   codeInput.selectionStart = codeInput.selectionEnd = start + insert.length;

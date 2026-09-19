@@ -5,7 +5,15 @@ import { tokenize } from '../src/tokenizer.js';
 import { parseProgram } from '../src/parser.js';
 import { createRuntime } from '../src/runtime.js';
 import { Interpreter } from '../src/interpreter.js';
-import { getAutocompleteItems } from '../editor/autocomplete.js';
+import {
+  getAutocompleteItems,
+  getPrefixAtCaret,
+  applyAutocompleteReplacement,
+} from '../editor/autocomplete.js';
+import {
+  getAutoIndentInsert,
+  applyTabIndent,
+} from '../editor/typing.js';
 import { SyntaxHighlighter, safeRenderTokens } from '../editor/syntax.js';
 
 test('invalid partial code stays visible instead of crashing the editor highlighter', () => {
@@ -35,11 +43,43 @@ test('allows non-keyword input without forcing an autocomplete suggestion', () =
   );
 });
 
-test('supports input() for both numbers and strings', async () => {
+test('autocomplete tracks the current word before the cursor and replaces only that prefix', () => {
+  const editor = { value: 'dh', selectionStart: 2, selectionEnd: 2 };
+  assert.equal(getPrefixAtCaret(editor), 'dh');
+
+  editor.value = 'dhoro';
+  editor.selectionStart = 2;
+  editor.selectionEnd = 2;
+  applyAutocompleteReplacement(editor, 'dh', 'dekhaw');
+  assert.equal(editor.value, 'dekhaworo');
+  assert.equal(editor.selectionStart, 6);
+  assert.equal(editor.selectionEnd, 6);
+
+  const emptyEditor = { value: '  ', selectionStart: 1, selectionEnd: 1 };
+  assert.equal(getPrefixAtCaret(emptyEditor), '');
+});
+
+test('preserves indentation and block depth on Enter and Tab', () => {
+  const start = 'Bhai (x > 5) {\n    dekhaw("hi")\n';
+  assert.equal(
+    getAutoIndentInsert(start, start.length),
+    '\n    ',
+  );
+
+  const afterTab = applyTabIndent('dekhaw(1)', 0, 0, '  ');
+  assert.equal(afterTab.value, '  dekhaw(1)');
+  assert.equal(afterTab.selectionStart, 2);
+  assert.equal(afterTab.selectionEnd, 2);
+
+  const selected = applyTabIndent('dhoro x = 1', 0, 2, '  ');
+  assert.equal(selected.value, '  oro x = 1');
+});
+
+test('supports input() and neo() for both numbers and strings', async () => {
   const source = `
-    dhoro age = input("Age: ")
+    dhoro neo = neo("Age: ")
     dhoro name = input("Name: ")
-    dekhaw(age + 1)
+    dekhaw(neo + 1)
     dekhaw(name)
   `;
   const runtime = createRuntime({
@@ -53,7 +93,7 @@ test('supports input() for both numbers and strings', async () => {
   });
 
   await new Interpreter({ runtime }).execute(parseProgram(tokenize(source)));
-  assert.equal(runtime.global.get('age'), 42);
+  assert.equal(runtime.global.get('neo'), 42);
   assert.equal(runtime.global.get('name'), 'neo');
 });
 
