@@ -10,7 +10,7 @@ const KEYWORDS = [
   "tham",
   "chol",
   "sotti",
-  "mitha",
+  "mittha",
   "khali",
 ];
 

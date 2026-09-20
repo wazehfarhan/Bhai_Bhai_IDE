@@ -13,9 +13,9 @@ const syntaxCells = [
   },
   {
     title: "2. Numbers, strings, booleans, and null",
-    explanation: "Numbers can calculate, + joins strings, sotti/mitha are booleans, and khali means no value.",
+    explanation: "Numbers can calculate, + joins strings, sotti/mittha are booleans, and khali means no value.",
     code: `dhoro total = 7 * 6\ndhoro message = "Total: " + total\ndekhaw(message)\ndekhaw(sotti)\ndekhaw(khali)`,
-    result: "Total: 42\ntrue\nnull",
+    result: "Total: 42\nsotti\nnull",
     fact: "Fun fact: ^ means power, so 2 ^ 3 produces 8.",
   },
   {

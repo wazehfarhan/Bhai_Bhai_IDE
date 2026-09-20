@@ -22,7 +22,7 @@ const KEYWORDS = new Map([
   ["continue", "chol"],
   ["sotti", "true"],
   ["true", "true"],
-  ["mitha", "false"],
+  ["mittha", "false"],
   ["false", "false"],
   ["khali", "null"],
   ["null", "null"],

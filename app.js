@@ -122,7 +122,7 @@ dekhaw(add(2, 3))</pre>
           <li><code>ferot</code> = return</li>
           <li><code>tham</code> = break</li>
           <li><code>chol</code> = continue</li>
-          <li><code>sotti</code> / <code>mitha</code> = true / false</li>
+          <li><code>sotti</code> / <code>mittha</code> = true / false</li>
           <li><code>khali</code> = null</li>
         </ul>
         <p>Important: use the exact keyword spellings above. If the word is not recognized, check the spelling and use the exact form shown here.</p>

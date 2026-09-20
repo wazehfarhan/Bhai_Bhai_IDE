@@ -188,10 +188,27 @@ test('supports object literals and strict equality', async () => {
   assert.deepEqual(output, ['2\n']);
 });
 
+test('maps Bangla boolean literals and output names correctly', async () => {
+  const tokens = tokenize('dekhaw(sotti)\ndekhaw(mittha)');
+  const booleans = tokens
+    .filter((token) => token.type === 'Boolean')
+    .map((token) => token.value);
+
+  assert.deepEqual(booleans, [true, false]);
+
+  const output = [];
+  const runtime = createRuntime({
+    onOutput: (value) => output.push(value),
+    isStopRequested: () => false,
+  });
+  await new Interpreter({ runtime }).execute(parseProgram(tokens));
+  assert.deepEqual(output, ['sotti\n', 'mittha\n']);
+});
+
 test('short-circuits logical operators', async () => {
   const source = `
     sotti || dekhaw("should not print")
-    mitha && dekhaw("should not print")
+    mittha && dekhaw("should not print")
   `;
   const output = [];
   const runtime = createRuntime({

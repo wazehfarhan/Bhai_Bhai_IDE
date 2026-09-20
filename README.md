@@ -17,6 +17,7 @@ The diagram below shows how the browser IDE, CLI runner, language frontend, runt
 
 ## Documentation
 
+- [guide.html](guide.html) — interactive syntax guide, including the `sotti`/`mittha` boolean literals
 - [docs/PROJECT_DOCUMENTATION.md](docs/PROJECT_DOCUMENTATION.md) — full project architecture and implementation overview
 - [docs/FEATURES.md](docs/FEATURES.md) — current and planned language features
 - [docs/FUTURE_UPDATES.md](docs/FUTURE_UPDATES.md) — roadmap and update priorities

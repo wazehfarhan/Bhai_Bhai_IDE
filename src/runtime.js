@@ -41,6 +41,12 @@ function normalizeInputValue(raw) {
   return text;
 }
 
+function formatOutputValue(value) {
+  if (value === true) return "sotti";
+  if (value === false) return "mittha";
+  return String(value);
+}
+
 export function createRuntime({ onOutput, isStopRequested, maxSteps = 100000, readInput = defaultReadInput }) {
   const global = new Environment(null);
   let steps = 0;
@@ -75,7 +81,7 @@ export function createRuntime({ onOutput, isStopRequested, maxSteps = 100000, re
       arity: 1,
       call: (args) => {
         const v = args[0];
-        onOutput(String(v) + "\n");
+        onOutput(formatOutputValue(v) + "\n");
         return null;
       },
     },
