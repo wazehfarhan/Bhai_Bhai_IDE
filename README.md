@@ -9,6 +9,12 @@ Bhai Bhai is a browser-based toy programming language and interpreter project bu
 - IDE tooling and editor experience are in [editor](editor).
 - Project docs are in [docs](docs).
 
+## Project architecture
+
+The diagram below shows how the browser IDE, CLI runner, language frontend, runtime, and learner workflow fit together.
+
+![Bhai Bhai project architecture](Diagram.png)
+
 ## Documentation
 
 - [docs/PROJECT_DOCUMENTATION.md](docs/PROJECT_DOCUMENTATION.md) — full project architecture and implementation overview
