@@ -205,6 +205,23 @@ test('maps Bangla boolean literals and output names correctly', async () => {
   assert.deepEqual(output, ['sotti\n', 'mittha\n']);
 });
 
+test('supports indexing arrays with literal and variable indexes', async () => {
+  const source = `
+    dhoro numbers = [12, 7, 25]
+    dhoro index = 1
+    dekhaw(numbers[0])
+    dekhaw(numbers[index])
+  `;
+  const output = [];
+  const runtime = createRuntime({
+    onOutput: (value) => output.push(value),
+    isStopRequested: () => false,
+  });
+
+  await new Interpreter({ runtime }).execute(parseProgram(tokenize(source)));
+  assert.deepEqual(output, ['12\n', '7\n']);
+});
+
 test('short-circuits logical operators', async () => {
   const source = `
     sotti || dekhaw("should not print")

@@ -9,6 +9,7 @@ import {
   WhileStatement,
   FunctionDeclaration,
   CallExpression,
+  IndexExpression,
   ReturnStatement,
   BreakStatement,
   ContinueStatement,
@@ -425,16 +426,27 @@ class Parser {
 
   parseCall() {
     let expr = this.parsePrimary();
-    while (this.at("Punctuation", "(")) {
-      this.consume("Punctuation", "(");
-      const args = [];
-      if (!this.at("Punctuation", ")")) {
-        do {
-          args.push(this.parseExpression());
-        } while (this.match("Punctuation", ","));
+    while (true) {
+      if (this.at("Punctuation", "(")) {
+        this.consume("Punctuation", "(");
+        const args = [];
+        if (!this.at("Punctuation", ")")) {
+          do {
+            args.push(this.parseExpression());
+          } while (this.match("Punctuation", ","));
+        }
+        this.consume("Punctuation", ")", "Expected ) after call args");
+        expr = CallExpression(expr, args);
+        continue;
       }
-      this.consume("Punctuation", ")", "Expected ) after call args");
-      expr = CallExpression(expr, args);
+      if (this.at("Punctuation", "[")) {
+        this.consume("Punctuation", "[");
+        const index = this.parseExpression();
+        this.consume("Punctuation", "]", "Expected ] after index");
+        expr = IndexExpression(expr, index);
+        continue;
+      }
+      break;
     }
     if (this.at("Operator", "++") || this.at("Operator", "--")) {
       const op = this.peek().value;

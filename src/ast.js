@@ -34,6 +34,10 @@ export function CallExpression(callee, args) {
   return { type: "CallExpression", callee, args };
 }
 
+export function IndexExpression(object, index) {
+  return { type: "IndexExpression", object, index };
+}
+
 export function ReturnStatement(argument) {
   return { type: "ReturnStatement", argument };
 }

@@ -216,6 +216,16 @@ export class Interpreter {
       }
       case "ArrayLiteral":
         return node.elements.map((e) => this.evalExpr(e, env));
+      case "IndexExpression": {
+        const object = this.evalExpr(node.object, env);
+        const index = this.evalExpr(node.index, env);
+        if (object === null || object === undefined) {
+          throw new BhaiBhaiError("Cannot index a null value", {
+            kind: "RuntimeError",
+          });
+        }
+        return object[index];
+      }
       case "ObjectLiteral": {
         const object = {};
         for (const pair of node.pairs) {

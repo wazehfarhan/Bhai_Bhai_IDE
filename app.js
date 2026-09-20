@@ -151,6 +151,7 @@ function syncGutter() {
 }
 
 function syncScroll() {
+  gutter.scrollTop = codeInput.scrollTop;
   syntaxLayer.scrollTop = codeInput.scrollTop;
   syntaxLayer.scrollLeft = codeInput.scrollLeft;
 }
@@ -171,6 +172,7 @@ function renderSyntax() {
 
 codeInput.addEventListener("input", () => {
   syncGutter();
+  syncScroll();
   renderSyntax();
 });
 codeInput.addEventListener("scroll", syncScroll);
@@ -347,6 +349,7 @@ uploadInput.addEventListener("change", async () => {
   if (!file) return;
   codeInput.value = await file.text();
   syncGutter();
+  syncScroll();
   renderSyntax();
   statusLeft.textContent = "Loaded";
 });
@@ -361,4 +364,5 @@ if (guideSource) {
 }
 
 syncGutter();
+syncScroll();
 renderSyntax();
